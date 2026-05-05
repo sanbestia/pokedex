@@ -1,4 +1,6 @@
 import { createInterface } from 'readline';
+import { getCommands } from './commands/command_registry.js';
+import { CLICommand } from './commands/command.js';
 
 
 export function cleanInput(input: string): string[] {
@@ -18,14 +20,23 @@ export function startREPL() {
 
     rl.on('line', (input) => {
         const wordArr: string[] = cleanInput(input);
+
         if (wordArr[0] === "") {
             rl.prompt();
-        } else {
-            console.log(`Your command was: ${wordArr[0]}`);
+            return;
+        }
+
+        const command: CLICommand | undefined = getCommands()[wordArr[0]];
+
+        if (typeof command === "undefined") {
+            console.log("Unknown command")
             rl.prompt();
-        };
+            return;
+        }
+
+        command.callback(getCommands());
+
+        rl.prompt();
     });
-
-
 
 }
