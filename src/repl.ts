@@ -1,6 +1,6 @@
 import { createInterface } from 'readline';
-import { getCommands } from './commands/command_registry.js';
-import { CLICommand } from './commands/command.js';
+import { CLICommand } from './state.js';
+import { State } from './state.js';
 
 
 export function cleanInput(input: string): string[] {
@@ -8,35 +8,28 @@ export function cleanInput(input: string): string[] {
     return input.toLowerCase().trim().split(/\s+/);
 }
 
-export function startREPL() {
-    // Create interface to interact with the console stream
-    const rl = createInterface({
-        input: process.stdin,
-        output: process.stdout,
-        prompt: 'Pokedex > '
-    });
+export function startREPL(state : State) {
+    state.rl.prompt();
 
-    rl.prompt();
-
-    rl.on('line', (input) => {
+    state.rl.on('line', (input) => {
         const wordArr: string[] = cleanInput(input);
 
         if (wordArr[0] === "") {
-            rl.prompt();
+            state.rl.prompt();
             return;
         }
 
-        const command: CLICommand | undefined = getCommands()[wordArr[0]];
+        const command: CLICommand | undefined = state.registry[wordArr[0]];
 
         if (typeof command === "undefined") {
             console.log("Unknown command")
-            rl.prompt();
+            state.rl.prompt();
             return;
         }
 
-        command.callback(getCommands());
+        command.callback(state);
 
-        rl.prompt();
+        state.rl.prompt();
     });
 
 }
